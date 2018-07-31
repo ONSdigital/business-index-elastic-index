@@ -10,6 +10,9 @@ pipeline {
         ELASTIC_HOST = ""
         ELASTIC_PORT = ""
         INDEX_NAME = "${params.index_name}"
+        ENVIRONMENT = "dev"
+        SSH_HOST = ""
+        OOZIE_URL = ""
         INDEX_JSON_PATH = "./business-index-api/conf/index.json"
     }
     options {
@@ -21,7 +24,7 @@ pipeline {
     stages {
         stage('Checkout'){
             agent any
-            when{ branch MASTER_BRANCH }
+            when { branch MASTER_BRANCH }
             steps {
                 dir('business-index-api') {
                     git(url: "https://github.com/ONSdigital/business-index-api.git", branch: "master")
@@ -31,7 +34,7 @@ pipeline {
 
         stage('Index Exists?'){
             agent any
-            when{ branch MASTER_BRANCH }
+            when { branch MASTER_BRANCH }
             steps {
                 colourText("info", "Checking to see if index [$INDEX_NAME] exists")
                 sh "business-index-api/conf/scripts/index_exists.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME"
@@ -41,10 +44,25 @@ pipeline {
 
         stage('Create Index'){
             agent any
-            when{ branch MASTER_BRANCH }
+            when { branch MASTER_BRANCH }
             steps {
                 colourText("info", "Creating index [$INDEX_NAME]")
                 sh "business-index-api/conf/scripts/create_index.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME $INDEX_JSON_PATH"
+            }
+        }
+
+        stage('Trigger Oozie Job'){
+            agent any
+            when { branch MASTER_BRANCH }
+            steps {
+                colourText("info", "Triggering Oozie Job to load ElasticSearch index [$INDEX_NAME]")
+                // We need to get the (environment specific) job.properties file from Gitlab
+                dir('configuration') {
+                    git(url: "$GITLAB_URL/BusinessIndex/business-index-elastic-index.git", credentialsId: "bi-gitlab-id", branch: "master")
+                }
+                sshagent(credentials: ["bi-dev-ci-ssh-key"]) {
+                    sh "./scripts/trigger_oozie_job.sh $ENVIRONMENT $SSH_HOST $OOZIE_URL"
+                }
             }
         }
     }
