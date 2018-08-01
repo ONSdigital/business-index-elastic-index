@@ -3,13 +3,15 @@
 
 pipeline {
     parameters {
-        string(name: 'index_name', defaultValue: 'example-bi-dev', description: 'Name of the ElasticSearch index to create.')
+        string(name: 'index_name', defaultValue: 'example-bi-dev', description: 'Name of the ElasticSearch index to create.'),
     }
     environment {
         MASTER_BRANCH = "master"
         ELASTIC_HOST = ""
         ELASTIC_PORT = ""
         INDEX_NAME = "${params.index_name}"
+        ENVIRONMENT = "dev"
+        ALIAS = "bi-$ENVIRONMENT"
         INDEX_JSON_PATH = "./business-index-api/conf/index.json"
     }
     options {
@@ -45,6 +47,15 @@ pipeline {
             steps {
                 colourText("info", "Creating index [$INDEX_NAME]")
                 sh "business-index-api/conf/scripts/create_index.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME $INDEX_JSON_PATH"
+            }
+        }
+
+        stage('Alias Index'){
+            agent any
+            when{ branch MASTER_BRANCH }
+            steps {
+                colourText("info", "Aliasing index [$INDEX_NAME] with alias [$ALIAS]")
+                sh "./scripts/alias_index.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME $ALIAS"
             }
         }
     }
