@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # This script will get all the ElasticSearch indexes that uses a given alias, the alias will
 # be removed from those indexes, before the index name that is passed into this script
@@ -8,14 +8,14 @@
 # - The passed in index name will be aliased using the given alias ('bi-dev').
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-aliases.html#indices-aliases
 
-SCRIPT_NAME=$0
+__SCRIPT_NAME=${BASH_SOURCE[0]}
 REQUIRED_NUM_ARGS=4
 
 # Fail fast if we get any errors
-set -e
+set -o errexit
 
 usage() {
-    echo "usage: ${SCRIPT_NAME} host port index_to_alias alias"
+    echo "usage: ${__SCRIPT_NAME} host port index_to_alias alias"
     echo "  host                    elasticsearch hostname"
     echo "  port                    elasticsearch port"
     echo "  index_to_alias          name of new elasticsearch index to alias"
@@ -24,7 +24,7 @@ usage() {
 }
 
 # Fail the script if we recieve an incorrect number of arguments
-if [ $# -ne $REQUIRED_NUM_ARGS ] ; then
+if [[ $# -ne ${REQUIRED_NUM_ARGS} ]] ; then
     echo 'Error, you need to provide the correct number of arguments.'
     usage
 fi
@@ -40,12 +40,12 @@ ELASTIC_ALIAS_URL="${ELASTIC_URL}/_alias/${ALIAS}"
 # Get all aliased indexes for a particular alias
 # https://gist.github.com/maxcnunes/9f77afdc32df354883df
 ALIAS_HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -XGET -H "Content-Type: application/json" "${ELASTIC_ALIAS_URL}")
-ALIAS_JSON=$(echo $ALIAS_HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
-ALIAS_HTTP_STATUS=$(echo $ALIAS_HTTP_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+ALIAS_JSON=$(echo ${ALIAS_HTTP_RESPONSE} | sed -e 's/HTTPSTATUS\:.*//g')
+ALIAS_HTTP_STATUS=$(echo ${ALIAS_HTTP_RESPONSE} | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
 
-if [ $ALIAS_HTTP_STATUS -eq 200 ] ; then
+if [[ ${ALIAS_HTTP_STATUS} -eq 200 ]] ; then
     echo "The following aliases are present for alias [${ALIAS}]:"
-    echo $ALIAS_JSON
+    echo ${ALIAS_JSON}
 
     # Get the first match for anything between "" (first JSON key of aliased index)
     # use xargs to trim whitespace - https://stackoverflow.com/a/12973694
@@ -68,7 +68,7 @@ ADD_ACTION='{ "add" : { "index" : "'"${INDEX_TO_ALIAS}"'", "alias" : "'"${ALIAS}
 ALIAS_POST_JSON='{"actions" : ['"${REMOVE_ACTION}"''"${ADD_ACTION}"']}'
 
 echo "Using the following alias JSON to POST to ElasticSearch:"
-echo $ALIAS_POST_JSON
+echo ${ALIAS_POST_JSON}
 
 curl --fail -XPOST --header "Content-Type: application/json" "${ELASTIC_URL}/_aliases" -d"${ALIAS_POST_JSON}"
 echo
