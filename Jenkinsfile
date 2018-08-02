@@ -3,7 +3,7 @@
 
 pipeline {
     parameters {
-        string(name: 'index_name', defaultValue: 'example-bi-dev', description: 'Name of the ElasticSearch index to create.'),
+        string(name: 'index_name', defaultValue: 'example-bi-dev', description: 'Name of the ElasticSearch index to create.')
     }
     environment {
         MASTER_BRANCH = "master"
