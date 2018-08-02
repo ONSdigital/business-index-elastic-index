@@ -3,14 +3,13 @@
 
 pipeline {
     parameters {
-        string(name: 'index_name', defaultValue: 'example-bi-dev', description: 'Name of the ElasticSearch index to create.')
+        choice(choices: 'dev\ntest\nbeta', description: 'Which ElasticSearch index to create + load data?', name: 'ENVIRONMENT')
     }
     environment {
         MASTER_BRANCH = "master"
         ELASTIC_HOST = ""
         ELASTIC_PORT = ""
-        INDEX_NAME = "${params.index_name}"
-        ENVIRONMENT = "dev"
+        ENVIRONMENT = "${params.ENVIRONMENT}"
         ALIAS = "bi-$ENVIRONMENT"
         SSH_HOST = ""
         OOZIE_URL = ""
@@ -37,9 +36,13 @@ pipeline {
             agent any
             when { branch MASTER_BRANCH }
             steps {
-                colourText("info", "Checking to see if index [$INDEX_NAME] exists")
-                sh "business-index-api/conf/scripts/index_exists.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME"
-                colourText("info", "No ElasticSearch index [${env.INDEX_NAME}] exists, continuing to Create Index step.")
+                script {
+                    currentDate = new Date().format('ddMMyyyy')
+                    INDEX_NAME = "bi-${ENVIRONMENT}-${currentDate}"
+                    colourText("info", "Checking to see if index [$INDEX_NAME] exists")
+                    sh "business-index-api/conf/scripts/index_exists.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME"
+                    colourText("info", "No ElasticSearch index [${env.INDEX_NAME}] exists, continuing to Create Index step.")
+                }
             }
         }
 
