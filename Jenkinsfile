@@ -11,6 +11,7 @@ pipeline {
         ELASTIC_PORT = ""
         INDEX_NAME = "${params.index_name}"
         ENVIRONMENT = "dev"
+        ALIAS = "bi-$ENVIRONMENT"
         SSH_HOST = ""
         OOZIE_URL = ""
         INDEX_JSON_PATH = "./business-index-api/conf/index.json"
@@ -50,7 +51,7 @@ pipeline {
                 sh "business-index-api/conf/scripts/create_index.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME $INDEX_JSON_PATH"
             }
         }
-
+      
         stage('Trigger Oozie Job'){
             agent any
             when { branch MASTER_BRANCH }
@@ -63,6 +64,15 @@ pipeline {
                 sshagent(credentials: ["bi-dev-ci-ssh-key"]) {
                     sh "./scripts/trigger_oozie_job.sh $ENVIRONMENT $SSH_HOST $OOZIE_URL"
                 }
+            }
+        }
+
+        stage('Alias Index'){
+            agent any
+            when{ branch MASTER_BRANCH }
+            steps {
+                colourText("info", "Aliasing index [$INDEX_NAME] with alias [$ALIAS]")
+                sh "./scripts/alias_index.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME $ALIAS"
             }
         }
     }
