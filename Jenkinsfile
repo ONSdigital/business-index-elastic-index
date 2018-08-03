@@ -62,7 +62,7 @@ pipeline {
                     git(url: "$GITLAB_URL/BusinessIndex/business-index-elastic-index.git", credentialsId: "bi-gitlab-id", branch: "master")
                 }
                 sshagent(credentials: ["bi-dev-ci-ssh-key"]) {
-                    sh "./scripts/trigger_oozie_job.sh $ENVIRONMENT $SSH_HOST $OOZIE_URL"
+                    sh "./scripts/trigger_oozie_job.sh $ENVIRONMENT $SSH_HOST $OOZIE_URL $INDEX_NAME"
                 }
             }
         }
