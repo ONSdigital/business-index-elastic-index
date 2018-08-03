@@ -8,6 +8,11 @@ Scripts that are relevant to the `business-index-api`, such as `index_exists.sh`
 
 The index definition for the ElasticSearch index can be found in [business-index-api/conf/index.json](https://github.com/ONSdigital/business-index-api/blob/master/conf/index.json).
 
+### Table of Contents
+**[1. Jenkinsfile Steps](#jenkinsfile-steps)**<br>
+**[2. Shell Script Linting](#shell-script-linting)**<br>
+**[3. License](#license)**<br>
+
 ## Jenkinsfile Steps
 
 ### Environment
