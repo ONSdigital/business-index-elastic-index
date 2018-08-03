@@ -30,8 +30,9 @@ HOST=$2
 OOZIE_HOME=$3
 INDEX_NAME=$4
 
-# Create the directory for our job.properties file, then send it using scp
+# Create the directory for our job.properties file and replace the INDEX_NAME value, then send it using scp
 ssh bi-${ENV}-ci@${HOST} "mkdir -p bi-${ENV}-ingestion-parquet"
+sed -i '' -e "s/\${INDEX_NAME}/${INDEX_NAME}/g" ./configuration/${ENV}/job.properties
 scp ./configuration/${ENV}/job.properties bi-${ENV}-ci@${HOST}:bi-${ENV}-ingestion-parquet
 echo "Successfully transfered ./configuration/${ENV}/job.properties to bi-${ENV}-ci@${HOST}:bi-${ENV}-ingestion-parquet"
 
@@ -39,13 +40,10 @@ echo "Successfully transfered ./configuration/${ENV}/job.properties to bi-${ENV}
 # ENVIRONMENT and INDEX_NAME are exported in the ssh step so that the job.properties file
 # used by Oozie can use them
 # JOB_ID is something like 'job: 213871982-213123123-asdasd', we remove 'job: '
-ssh -tt bi-${ENV}-ci@${HOST} OOZIE_HOME=$OOZIE_HOME ENV=$ENV INDEX_NAME=$INDEX_NAME 'bash -s' << 'ENDSSH'
+ssh -tt bi-${ENV}-ci@${HOST} OOZIE_HOME=$OOZIE_HOME ENV=$ENV 'bash -s' << 'ENDSSH'
     TIMEOUT=1000
     INTERVAL=1
     OOZIE_ID_INDEX=5
-
-    export ENVIRONMENT=$ENV
-    export INDEX_NAME=$INDEX_NAME
 
     JOB_ID_UNFORMATTED=$(oozie job --oozie ${OOZIE_HOME} -config ./bi-${ENV}-ingestion-parquet/job.properties -run)
 
