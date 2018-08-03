@@ -10,7 +10,8 @@ pipeline {
         ELASTIC_HOST = ""
         ELASTIC_PORT = ""
         ENVIRONMENT = "${params.ENVIRONMENT}"
-        ALIAS = "bi-$ENVIRONMENT"
+        ALIAS = "bi-${ENVIRONMENT}"
+        INDEX_NAME = "bi-${ENVIRONMENT}-${new Date().format('ddMMyyyy')}"
         SSH_HOST = ""
         OOZIE_URL = ""
         INDEX_JSON_PATH = "./business-index-api/conf/index.json"
@@ -36,13 +37,9 @@ pipeline {
             agent any
             when { branch MASTER_BRANCH }
             steps {
-                script {
-                    currentDate = new Date().format('ddMMyyyy')
-                    INDEX_NAME = "bi-${ENVIRONMENT}-${currentDate}"
-                    colourText("info", "Checking to see if index [$INDEX_NAME] exists")
-                    sh "business-index-api/conf/scripts/index_exists.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME"
-                    colourText("info", "No ElasticSearch index [${env.INDEX_NAME}] exists, continuing to Create Index step.")
-                }
+                colourText("info", "Checking to see if index [$INDEX_NAME] exists")
+                sh "business-index-api/conf/scripts/index_exists.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME"
+                colourText("info", "No ElasticSearch index [${env.INDEX_NAME}] exists, continuing to Create Index step.")
             }
         }
 
