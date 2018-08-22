@@ -7,13 +7,13 @@ pipeline {
     }
     environment {
         MASTER_BRANCH = "master"
-        ELASTIC_HOST = ""
-        ELASTIC_PORT = ""
+        ELASTIC_HOST = "${BI_ELASTIC_HOST}"
+        ELASTIC_PORT = "${BI_ELASTIC_PORT}"
         ENVIRONMENT = "${params.ENVIRONMENT}"
         ALIAS = "bi-${ENVIRONMENT}"
         INDEX_NAME = "bi-${ENVIRONMENT}-${new Date().format('ddMMyyyy')}"
-        SSH_HOST = ""
-        OOZIE_URL = ""
+        SSH_HOST = "${BI_CDHUT_SSH_HOST}"
+        OOZIE_URL = "${BI_OOZIE_URL}"
         INDEX_JSON_PATH = "./business-index-api/conf/index.json"
     }
     options {
