@@ -3,15 +3,15 @@
 
 pipeline {
     parameters {
-        string(name: 'index_name', defaultValue: 'example-bi-dev', description: 'Name of the ElasticSearch index to create.')
+        choice(choices: 'dev\ntest\nbeta', description: 'Which ElasticSearch index to create + load data?', name: 'ENVIRONMENT')
     }
     environment {
         MASTER_BRANCH = "master"
         ELASTIC_HOST = ""
         ELASTIC_PORT = ""
-        INDEX_NAME = "${params.index_name}"
-        ENVIRONMENT = "dev"
-        ALIAS = "bi-$ENVIRONMENT"
+        ENVIRONMENT = "${params.ENVIRONMENT}"
+        ALIAS = "bi-${ENVIRONMENT}"
+        INDEX_NAME = "bi-${ENVIRONMENT}-${new Date().format('ddMMyyyy')}"
         SSH_HOST = ""
         OOZIE_URL = ""
         INDEX_JSON_PATH = "./business-index-api/conf/index.json"
