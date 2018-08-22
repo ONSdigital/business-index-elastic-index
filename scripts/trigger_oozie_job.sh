@@ -51,7 +51,7 @@ ssh -tt bi-${ENV}-ci@${HOST} OOZIE_HOME=$OOZIE_HOME ENV=$ENV 'bash -s' << 'ENDSS
     JOB_ID=${JOB_ID_UNFORMATTED:${OOZIE_ID_INDEX}}
     echo "JOB_ID: [${JOB_ID}]"
     
-    oozie job --oozie ${OOZIE_HOME} -poll ${JOB_ID} -interval ${INTERVAL} -timeout ${TIMEOUT} -verbose'
+    oozie job --oozie ${OOZIE_HOME} -poll ${JOB_ID} -interval ${INTERVAL} -timeout ${TIMEOUT} -verbose
 ENDSSH
 
 echo "Oozie job was successful, data has been loaded into ElasticSearch index."
