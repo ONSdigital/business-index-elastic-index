@@ -32,7 +32,8 @@ INDEX_NAME=$4
 
 # Create the directory for our job.properties file and replace the INDEX_NAME value, then send it using scp
 ssh bi-${ENV}-ci@${HOST} "mkdir -p bi-${ENV}-ingestion-parquet"
-sed -i '' -e "s/\${INDEX_NAME}/${INDEX_NAME}/g" ./configuration/${ENV}/job.properties
+sed -e "s/{INDEX_NAME}/${INDEX_NAME}/g" ./configuration/${ENV}/job.properties > ./configuration/${ENV}/updated_job.properties
+mv ./configuration/${ENV}/updated_job.properties ./configuration/${ENV}/job.properties
 scp ./configuration/${ENV}/job.properties bi-${ENV}-ci@${HOST}:bi-${ENV}-ingestion-parquet
 echo "Successfully transfered ./configuration/${ENV}/job.properties to bi-${ENV}-ci@${HOST}:bi-${ENV}-ingestion-parquet"
 
