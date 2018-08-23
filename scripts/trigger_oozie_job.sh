@@ -42,6 +42,8 @@ echo "Successfully transfered ./configuration/${ENV}/job.properties to bi-${ENV}
 # used by Oozie can use them
 # JOB_ID is something like 'job: 213871982-213123123-asdasd', we remove 'job: '
 ssh -tt bi-${ENV}-ci@${HOST} OOZIE_HOME=$OOZIE_HOME ENV=$ENV 'bash -s' << 'ENDSSH'
+    set -e
+
     TIMEOUT=1000
     INTERVAL=1
     OOZIE_ID_INDEX=5
@@ -50,8 +52,24 @@ ssh -tt bi-${ENV}-ci@${HOST} OOZIE_HOME=$OOZIE_HOME ENV=$ENV 'bash -s' << 'ENDSS
 
     JOB_ID=${JOB_ID_UNFORMATTED:${OOZIE_ID_INDEX}}
     echo "JOB_ID: [${JOB_ID}]"
-    
-    oozie job --oozie ${OOZIE_HOME} -poll ${JOB_ID} -interval ${INTERVAL} -timeout ${TIMEOUT} -verbose
+
+    oozie job -poll ${JOB_ID} -interval ${INTERVAL} --oozie ${OOZIE_HOME} -timeout ${TIMEOUT} -verbose | while read LOGLINE
+    do
+        echo line: $LOGLINE
+        [[ "${LOGLINE}" == *"SUCCEEDED"* ]] && exit 0
+        [[ "${LOGLINE}" == *"ABORTED"* ]] && exit 1
+        [[ "${LOGLINE}" == *"SUSPENDED"* ]] && exit 1
+        [[ "${LOGLINE}" == *"KILLED"* ]] && exit 1
+    done
+
+    if [[ $? -eq 0 ]]; then
+        echo "Oozie status: SUCCEEDED"
+        exit 0
+    else
+        echo "Oozie status: ABORTED or SUSPENDED or KILLED"
+        echo "Check logs for specific error status."
+        exit 1
+    fi
 ENDSSH
 
 echo "Oozie job was successful, data has been loaded into ElasticSearch index."
