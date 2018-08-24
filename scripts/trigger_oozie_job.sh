@@ -55,18 +55,22 @@ ssh -tt bi-${ENV}-ci@${HOST} OOZIE_HOME=$OOZIE_HOME ENV=$ENV 'bash -s' << 'ENDSS
 
     oozie job -poll ${JOB_ID} -interval ${INTERVAL} --oozie ${OOZIE_HOME} -timeout ${TIMEOUT} -verbose | while read LOGLINE
     do
-        echo line: $LOGLINE
-        [[ "${LOGLINE}" == *"SUCCEEDED"* ]] && exit 0
-        [[ "${LOGLINE}" == *"ABORTED"* ]] && exit 1
-        [[ "${LOGLINE}" == *"SUSPENDED"* ]] && exit 1
-        [[ "${LOGLINE}" == *"KILLED"* ]] && exit 1
+        echo status: [${LOGLINE}]
+        # We either continue if the command is still running or exit with the appropriate exit code
+        if [[ "$LOGLINE" == *"RUNNING"* ]] ; then
+            :
+        elif [[ "${LOGLINE}" == *"SUCCEEDED"* ]] ; then
+            exit 0
+        else
+            exit 1
+        fi
     done
 
     if [[ $? -eq 0 ]]; then
         echo "Oozie status: SUCCEEDED"
         exit 0
     else
-        echo "Oozie status: ABORTED or SUSPENDED or KILLED"
+        echo "The Oozie job did not succeed."
         echo "Check logs for specific error status."
         exit 1
     fi
