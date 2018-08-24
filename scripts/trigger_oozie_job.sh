@@ -53,6 +53,10 @@ ssh -tt bi-${ENV}-ci@${HOST} OOZIE_HOME=$OOZIE_HOME ENV=$ENV 'bash -s' << 'ENDSS
     JOB_ID=${JOB_ID_UNFORMATTED:${OOZIE_ID_INDEX}}
     echo "JOB_ID: [${JOB_ID}]"
 
+    # The oozie poll command does not exit once a job status changes from RUNNING -> KILLED or SUCCEEDED etc, so we need
+    # to parse the output of the polling and exit with an appropriate error code once the status is not RUNNING. This
+    # command will only finish once the status is not RUNNING, succeeding if the status is SUCCEEDED or failing for
+    # any other status.
     oozie job -poll ${JOB_ID} -interval ${INTERVAL} --oozie ${OOZIE_HOME} -timeout ${TIMEOUT} -verbose | while read LOGLINE
     do
         echo status: [${LOGLINE}]
