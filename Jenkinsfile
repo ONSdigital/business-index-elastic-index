@@ -63,7 +63,7 @@ pipeline {
                 }
                 withCredentials([usernamePassword(credentialsId: "bi-${ENVIRONMENT}-ci-user-pass", passwordVariable: "PASSWORD", usernameVariable: "USERNAME")]) {
                     sshagent(credentials: ["bi-${ENVIRONMENT}-ci-ssh-key"]) {
-                        sh './scripts/trigger_oozie_job.sh "$PASSWORD" $ENVIRONMENT $SSH_HOST $OOZIE_URL $INDEX_NAME'
+                        sh './scripts/trigger_oozie_job.sh "$PASSWORD" "$ENVIRONMENT" "$SSH_HOST" "$OOZIE_URL" "$INDEX_NAME"'
                     }
                 }
             }
