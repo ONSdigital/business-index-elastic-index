@@ -60,8 +60,32 @@ ssh -tt bi-${ENV}-ci@${HOST} BI_PASSWORD=$REPLACED_PASSWORD OOZIE_HOME=$OOZIE_HO
 
     JOB_ID=${JOB_ID_UNFORMATTED:${OOZIE_ID_INDEX}}
     echo "JOB_ID: [${JOB_ID}]"
-    
-    oozie job --oozie ${OOZIE_HOME} -poll ${JOB_ID} -interval ${INTERVAL} -timeout ${TIMEOUT} -verbose
+
+    # The oozie poll command does not exit once a job status changes from RUNNING -> KILLED or SUCCEEDED etc, so we need
+    # to parse the output of the polling and exit with an appropriate error code once the status is not RUNNING. This
+    # command will only finish once the status is not RUNNING, succeeding if the status is SUCCEEDED or failing for
+    # any other status.
+    oozie job -poll ${JOB_ID} -interval ${INTERVAL} --oozie ${OOZIE_HOME} -timeout ${TIMEOUT} -verbose | while read LOGLINE
+    do
+        echo status: [${LOGLINE}]
+        # We either continue if the command is still running or exit with the appropriate exit code
+        if [[ "$LOGLINE" == *"RUNNING"* ]] ; then
+            :
+        elif [[ "${LOGLINE}" == *"SUCCEEDED"* ]] ; then
+            exit 0
+        else
+            exit 1
+        fi
+    done
+
+    if [[ $? -eq 0 ]]; then
+        echo "Oozie status: SUCCEEDED"
+        exit 0
+    else
+        echo "The Oozie job did not succeed."
+        echo "Check logs for specific error status."
+        exit 1
+    fi
 ENDSSH
 
 echo "Oozie job was successful, data has been loaded into ElasticSearch index."
