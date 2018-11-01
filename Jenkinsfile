@@ -11,7 +11,7 @@ pipeline {
         ELASTIC_PORT = "${BI_ELASTIC_PORT}"
         ENVIRONMENT = "${params.ENVIRONMENT}"
         ALIAS = "bi-${ENVIRONMENT}"
-        INDEX_NAME = "bi-${ENVIRONMENT}-${new Date().format('ddMMyyyy')}"
+        INDEX_NAME = "bi-${ENVIRONMENT}-${new Date().format('ddMMyyyy-HHmmss')}"
         SSH_HOST = "${BI_CDHUT_SSH_HOST}"
         OOZIE_URL = "${BI_OOZIE_URL}"
         INDEX_JSON_PATH = "./business-index-api/conf/updated_index.json"
