@@ -17,7 +17,7 @@ The index definition for the ElasticSearch index can be found in [business-index
 
 ### Environment
 
-When defining the variables which will be available throughout the `Jenkinsfile`, the index name is generated using the `ENVIRONMENT` build parameter and the current date, in `ddMMyyyy` format. E.g. `bi-${ENVIRONMENT}-ddMMyyyy` -> `bi-dev-03082018`.
+When defining the variables which will be available throughout the `Jenkinsfile`, the index name is generated using the `ENVIRONMENT` build parameter and the current date, in `ddMMyyyy-HHmmss` format. E.g. `bi-${ENVIRONMENT}-ddMMyyyy-HHmmss` -> `bi-dev-01112018-130248`.
 
 ### Checkout
 
