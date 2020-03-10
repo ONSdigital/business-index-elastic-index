@@ -33,25 +33,6 @@ pipeline {
             }
         }
 
-        stage('Index Exists?'){
-            agent any
-            when { branch MASTER_BRANCH }
-            steps {
-                colourText("info", "Checking to see if index [$INDEX_NAME] exists")
-                sh "business-index-api/conf/scripts/index_exists.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME"
-                colourText("info", "No ElasticSearch index [${env.INDEX_NAME}] exists, continuing to Create Index step.")
-            }
-        }
-
-        stage('Create Index'){
-            agent any
-            when { branch MASTER_BRANCH }
-            steps {
-                colourText("info", "Creating index [$INDEX_NAME]")
-                sh "business-index-api/conf/scripts/create_index.sh $ELASTIC_HOST $ELASTIC_PORT $INDEX_NAME $INDEX_JSON_PATH"
-            }
-        }
-      
         stage('Trigger Oozie Job'){
             agent any
             when { branch MASTER_BRANCH }
@@ -63,6 +44,7 @@ pipeline {
                 }
                 withCredentials([usernamePassword(credentialsId: "bi-${ENVIRONMENT}-ci-user-pass", passwordVariable: "PASSWORD", usernameVariable: "USERNAME")]) {
                     sshagent(credentials: ["bi-${ENVIRONMENT}-ci-ssh-key"]) {
+                    	sh 'ls -la /home/jenkins/.ssh/known_hosts'
                         sh './scripts/trigger_oozie_job.sh "$PASSWORD" "$ENVIRONMENT" "$SSH_HOST" "$OOZIE_URL" "$INDEX_NAME"'
                     }
                 }
